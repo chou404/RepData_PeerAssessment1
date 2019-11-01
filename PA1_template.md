@@ -10,16 +10,29 @@ output:
 
 * Load the data (i.e. `read.csv()`)
 
-``` {r}
+
+```r
 if(!file.exists('./data')) dir.create('./data')
 unzip(zipfile = 'activity.zip', exdir = './data')
 dataset <- read.csv('./data/activity.csv')
 summary(dataset)
 ```
 
+```
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-01:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-02:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-03:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-04:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-06:  288   Max.   :2355.0  
+##  NA's   :2304     (Other)   :15840
+```
+
 * Process/transform the data (if necessary) into a format suitable for your analysis
 
-``` {r}
+
+```r
 interval = as.character(dataset$interval)
 
 g <- function(char){
@@ -33,8 +46,29 @@ interval <- sapply(interval,g)
 date2 <- paste(as.character(dataset$date), interval, sep = '-')
 
 library(lubridate)
-date2 <- parse_date_time(date2, orders = '%y-%m-%d-%h-%m')
+```
 
+```
+## 
+## Attaching package: 'lubridate'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     date
+```
+
+```r
+date2 <- parse_date_time(date2, orders = '%y-%m-%d-%h-%m')
+```
+
+```
+## Warning: hms, hm and ms usage is deprecated, please use HMS, HM or MS
+## instead. Deprecated in version '1.5.6'.
+```
+
+```r
 dataset$date2 <- date2
 ```
 
@@ -42,35 +76,41 @@ dataset$date2 <- date2
 ## What is mean total number of steps taken per day?
 
 * Make a histogram of the total number of steps taken each day
-``` {r}
+
+```r
 splitted_data <- split(dataset$steps, f = dataset$date)
 total_daily_steps <- sapply(X = splitted_data, FUN = sum)
 hist(total_daily_steps, main = 'Histogram of total daily steps')
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
 * Calculate and report the **mean** and **median** total number of steps taken per day
 
-The mean and median total number of steps taken daily are `r mean(total_daily_steps, na.rm = T)` and `r median(total_daily_steps, na.rm = T)` respectively.
+The mean and median total number of steps taken daily are 1,0766189\times 10^{4} and 10765 respectively.
 
 ## What is the average daily activity pattern?
 
 * Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-``` {r}
+
+```r
 splitted_data <- split(dataset$steps, f = as.factor(dataset$interval))
 mean_steps_by_interval <- sapply(X = splitted_data, FUN = mean, na.rm = T)
 plot(unique(dataset$interval), mean_steps_by_interval, type = 'l',main = 'Average daily activity pattern', xlab = '5 minutes intervals', ylab = 'Average number of steps across all days')
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 * Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-The 5-minute inverval containing maximum number of steps on average across all days is `r dataset$interval[which.max(mean_steps_by_interval)]` .
+The 5-minute inverval containing maximum number of steps on average across all days is 835 .
 
 ## Imputing missing values
 
 * Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
 
-There are `r sum(is.na(dataset$steps))` missing values in the dataset and that corresponds to `r mean(is.na(dataset$steps))*100`% of the data.
+There are 2304 missing values in the dataset and that corresponds to 13,1147541% of the data.
 
 * Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
@@ -78,7 +118,8 @@ The NA's will be replaced by the average number of steps of the given interval a
 
 * Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-``` {r}
+
+```r
 dataset2 <- dataset
 steps_missing_logical <- is.na(dataset2$steps)
 index <- seq_along(steps_missing_logical)
@@ -98,18 +139,24 @@ for (i in index){
 
 * Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-``` {r}
+
+```r
 splitted_data <- split(dataset2$steps, f = dataset$date)
 total_daily_steps <- sapply(X = splitted_data, FUN = sum)
 hist(total_daily_steps, main = 'Histogram of total daily steps')
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
 splitted_data <- split(dataset$steps, f = as.factor(dataset$interval))
 mean_steps_by_interval <- sapply(X = splitted_data, FUN = mean, na.rm = T)
 plot(unique(dataset$interval), mean_steps_by_interval, type = 'l',main = 'Average daily activity pattern', xlab = '5 minutes intervals', ylab = 'Average number of steps across all days')
-
 ```
 
-The mean and median total number of steps taken daily are `r mean(total_daily_steps, na.rm = T)` and `r median(total_daily_steps, na.rm = T)` respectively.
+![](PA1_template_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+The mean and median total number of steps taken daily are 1,0766189\times 10^{4} and 1,0766189\times 10^{4} respectively.
 The histogram differs slightly.
 
 
@@ -117,7 +164,8 @@ The histogram differs slightly.
 
 * Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-``` {r}
+
+```r
 isweekend <- wday(dataset2$date2)
 weekday_logical <- isweekend %in% 2:6
 weekend_logical <- isweekend %in% c(1,7)
@@ -130,8 +178,11 @@ dataset2$isweekend <- isweekend
 
 * Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using **simulated data**:
 
-``` {r}
+
+```r
 splitted_data <- aggregate(steps ~ interval + isweekend, data = dataset2, mean)
 library(lattice)
 xyplot(steps~interval|isweekend,data=splitted_data,layout = c(1,2),type="l")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
